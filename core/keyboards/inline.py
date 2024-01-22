@@ -1,5 +1,6 @@
 import os
 
+import pymysql
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -34,17 +35,38 @@ async def generatorMainKeyBoard(state: FSMContext):
 #                          [InlineKeyboardButton(text='All', url=None, callback_data='all'), InlineKeyboardButton(text='Exit', url=None, callback_data='exit_worker')]])
 #     return MainKeyBoard
 
-async def generatorWorkerKeyBoard():
-    json_data = dict()
-    with open('data1.json', 'r') as j:
-        json_data = json.load(j)
+async def generatorWorkerKeyBoard(state: FSMContext):
+    connect = pymysql.connect(
+        host="127.0.0.1",
+        port=3306,
+        user="root",
+        password="root",
+        database="test12",
+        cursorclass=pymysql.cursors.DictCursor
+        # host=settings.server.host,
+        # port=settings.server.port,
+        # user=settings.server.user,
+        # password=settings.server.password,
+        # database=settings.server.db_name,
+        # cursorclass=pymysql.cursors.DictCursor
+    )
+    data = await state.get_data()
+    with connect.cursor() as cursor:
+        TasksKeyboardIn = InlineKeyboardBuilder()
+        sqlCommand = "SELECT  ID, Name FROM `group`"
+        cursor.execute(sqlCommand)
+        for nameProject in cursor.fetchall():
+            print(nameProject.get("Name"), nameProject.get("ID"))
+            if data.get("nameOfTheSpecialist") != None:
+                print("affasm--->",str(nameProject.get("ID")) in data.get("nameOfTheSpecialist"))
+                print("affasm--->",nameProject.get("ID") , data.get("nameOfTheSpecialist"))
 
-    archiveKeyBoard = InlineKeyboardBuilder()
-    print(settings.bots.path_save)
-    for nameProject in json_data.keys():
-        archiveKeyBoard.button(text=nameProject, callback_data=nameProject)
-    archiveKeyBoard.adjust(1)
-    return archiveKeyBoard.as_markup()
+            TasksKeyboardIn.button(text=f'Name:{nameProject.get("Name")}{["🔴","🟢"][data.get("nameOfTheSpecialist") != None and str(nameProject.get("ID")) in data.get("nameOfTheSpecialist")]}', callback_data=str(nameProject.get("ID")))
+
+
+        TasksKeyboardIn.button(text="exit", callback_data="exitMainKey")
+        TasksKeyboardIn.adjust(1)
+        return TasksKeyboardIn.as_markup()
 
 
 async def generatorArchiveKeyBoard():

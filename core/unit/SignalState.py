@@ -21,3 +21,6 @@ class FormMesegeInlineKeyboard():
     MesegeID = None
     ChatID = None
 
+class Tasks(StatesGroup):
+    chosenUser = State()
+

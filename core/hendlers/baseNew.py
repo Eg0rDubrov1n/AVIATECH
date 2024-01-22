@@ -69,7 +69,7 @@ async def name_of_the_specialist(call: CallbackQuery, state: FSMContext):
     print("name_of_the_specialist")
     await call.answer("Выберите специалиста")
     await call.message.edit_reply_markup(
-        reply_markup=await generatorWorkerKeyBoard()
+        reply_markup=await generatorWorkerKeyBoard(state)
     )
 
 async def description(call: CallbackQuery, state: FSMContext):
@@ -117,6 +117,7 @@ def CreateNewExeleFile(data,name):
 async def send(call: CallbackQuery, state: FSMContext, bot : Bot):
     data = await state.get_data()
     print(f"-----------------------{state}--------------------")
+    print(data.get("nameOfTheSpecialist"))
     if data.get("namePjoject") != None:
         # print("Finish--->")
         # print(data.get("download_zip"))
@@ -155,13 +156,29 @@ async def exit(call: CallbackQuery, state: FSMContext):
     await call.message.edit_reply_markup()
     await call.message.answer("What Project?",reply_markup=KeyGlobal)
 
+async def exitMainKey(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_reply_markup("What Project?", reply_markup=await generatorMainKeyBoard(state))
 
 
 
 async def name_of_the_specialistPoint2(call: CallbackQuery, state: FSMContext,bot:Bot):
-    await state.update_data(nameOfTheSpecialist=call.data)
+    data = await state.get_data()
+    temporaryArray = list()
+    if data.get("nameOfTheSpecialist") != None:
+        temporaryArray = data.get("nameOfTheSpecialist")
+    if call.data in temporaryArray:
+        temporaryArray.remove(call.data)
+    else:
+        temporaryArray.append(call.data)
+
+    print(temporaryArray)
+    await state.update_data(nameOfTheSpecialist=temporaryArray)
     print("State UPDETE nameOfTheSpecialist")
 
+    await call.message.edit_reply_markup(
+        reply_markup=await generatorWorkerKeyBoard(state)
+    )
+
     print(call.data)
-    await bot.edit_message_text(text="ОБНОВА", reply_markup=await generatorMainKeyBoard(state),
-                                chat_id=FormMesegeInlineKeyboard.ChatID, message_id=FormMesegeInlineKeyboard.MesegeID)
+    # await bot.edit_message_text(text="ОБНОВА", reply_markup=await generatorWorkerKeyBoard(state),
+    #                             chat_id=FormMesegeInlineKeyboard.ChatID, message_id=FormMesegeInlineKeyboard.MesegeID)

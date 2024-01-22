@@ -31,6 +31,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, R
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.callback_query import CallbackQuery
 
+from core.TheTaskBook.hendlersTASK.hendlers import NewTasks
 from core.hendlers.SetingsHendler import new_the_specialist, process_new_the_specialist_name, \
     process_new_the_specialist_tag, Setings
 from core.hendlers.action import process_name, process_Description, download_zipAction, process_nameError
@@ -38,7 +39,7 @@ from core.hendlers.baseAr import Archive, SendFileArchive, ActionWithProject
 from core.hendlers.baseNew import *
 from core.keyboards.reply import KeyGlobal
 from core.setings import settings
-from core.unit.SignalState import ArchiveState
+from core.unit.SignalState import ArchiveState, Tasks
 
 
 # from core.unit.SignalState import FileSend
@@ -59,11 +60,16 @@ async def start():
     dp.message.register(get_start,Command(commands=["start","exit"]))
     dp.message.register(SendFileArchive,F.text.lower() == "скачать")
 
+    dp.message.register(NewTasks, F.text.lower() == "дать задачу")
     dp.message.register(newProject,F.text.lower() == "новый проект")
     dp.message.register(Archive, F.text.lower() == "архив")
     dp.message.register(Setings, F.text.lower() == "настройки")
 
+
     dp.callback_query.register(exit, F.data.lower() == 'exit')
+    dp.callback_query.register(exitMainKey, F.data.lower() == 'exitmainkey')
+
+
 
     dp.callback_query.register(name_pjoject, F.data.lower() == 'name_pjoject')
     dp.callback_query.register(name_of_the_specialist, F.data.lower() == 'name_of_the_specialist')
@@ -75,7 +81,13 @@ async def start():
 
 
 
+
+
     dp.callback_query.register(new_the_specialist, F.data.lower() == 'specialist')
+
+    dp.message.register(process_new_the_specialist_name, Tasks.chosenUser)#/////////<----->
+
+
     dp.message.register(process_new_the_specialist_name, Specialist.specialistName)
     dp.message.register(process_new_the_specialist_tag, Specialist.specialisttag)
 

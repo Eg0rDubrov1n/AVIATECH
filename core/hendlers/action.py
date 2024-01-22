@@ -4,7 +4,6 @@ import json
 from aiogram.fsm.context import FSMContext
 from aiogram import types
 
-from core.hendlers.baseNew import name_pjoject
 from core.keyboards.inline import generatorMainKeyBoard, FORMPRINT, simpleQuestion
 from core.unit.SignalState import Form, Specialist, FormMesegeInlineKeyboard
 from aiogram.types import Message, CallbackQuery

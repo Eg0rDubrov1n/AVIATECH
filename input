@@ -1,2 +1,7 @@
 myPATH=C:/Users/User/PycharmProjects/Новая_папка/
 TOKEN=6799110706:AAGJeiP3BF0_0bDA6KuOLZwHcsiVVzSQVUU
+HOST=127.0.0.1
+PORT=3306
+USER=root
+PASSWORD=root
+DB_NAME=test12
