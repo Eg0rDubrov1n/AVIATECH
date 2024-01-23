@@ -1,5 +1,9 @@
+import json
+
 import archive
 import os
+
+import pymysql
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -16,14 +20,14 @@ from core.keyboards.inline import generatorWorkerKeyBoard, generatorMainKeyBoard
 
 
 # class Signal(StatesGroup):
-#     namePjojectSignal = 0
+#     name_TasksSignal = 0
 #     name_of_the_specialist = 0
 #     description = 0
 #     download_zip = 0
 #     MenuInChat = False
 
 # def SbrosSignal():
-#     Signal.namePjojectSignal = 0
+#     Signal.name_TasksSignal = 0
 #     Signal.name_of_the_specialist = 0
 #     Signal.description = 0
 #     Signal.download_zip = 0
@@ -44,7 +48,7 @@ async def newProject(message: Message, state: FSMContext) -> None:
     # Signal.MenuInChat = True
     await state.clear()
     data = await state.get_data()
-    print(data.get("namePjoject"))
+    print(data.get("name_Tasks"))
     print(("NEWWWWWWWWWWWWWWWW"))
     await FORMPRINT(state)
 
@@ -59,13 +63,13 @@ async def newProject(message: Message, state: FSMContext) -> None:
 
 async def name_pjoject(call: CallbackQuery, state: FSMContext):
     print("name_pjoject")
-    await state.set_state(Form.namePjoject)
+    await state.set_state(Form.name_Tasks)
     data = await state.get_data()
     await FORMPRINT(state)
     await call.answer("Введите название проекта")
 
 async def name_of_the_specialist(call: CallbackQuery, state: FSMContext):
-    await state.set_state(Form.nameOfTheSpecialist)
+    await state.set_state(Form.designated_People)
     print("name_of_the_specialist")
     await call.answer("Выберите специалиста")
     await call.message.edit_reply_markup(
@@ -114,25 +118,84 @@ def CreateNewExeleFile(data,name):
             Column += 1
     wb.save(f"{name}/test.xlsx")
 
+def WriteInSQL(data):
+    connect = pymysql.connect(
+        host="127.0.0.1",
+        port=3306,
+        user="root",
+        password="root",
+        database="test12",
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    isstr_queryKey = list()
+    isstr_queryValues = list()
+    for key, item in data.items():
+        if item != None and key != 'download_zip':
+            isstr_queryKey.append(f"'{key}'")
+            if key == "designated_People":
+                isstr_queryValues.append(f"JSON_ARRAY({item})".replace('[','').replace(']',''))
+            else:
+                isstr_queryValues.append(f"'{item}'")
+    isstr_queryKey = ','.join(isstr_queryKey).replace('\'', '`')
+    isstr_queryValues = ','.join(isstr_queryValues)
+    with connect.cursor() as cursor:
+        isstr_query = (f"INSERT INTO `tasks` ({isstr_queryKey}) VALUES ({isstr_queryValues});")
+        cursor.execute(isstr_query)
+        connect.commit()
+    print("____________________________________________")
+    #---------------------------------------------------------------------
+    #---------------------------------------------------------------------
+    with connect.cursor() as cursor:
+        idRequest = "SELECT AUTO_INCREMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'group';"
+        cursor.execute(idRequest)
+        idTask = cursor.fetchall()[0]["AUTO_INCREMENT"]
+        for idPeople in data.get("designated_People"):
+            sqlCommand = f"SELECT  IDTasks FROM `group` WHERE ID={idPeople}"
+            print(f"sqlCommand------------------------------------------{sqlCommand}")
+            cursor.execute(sqlCommand)
+            arr = cursor.fetchall()[0]['IDTasks']
+            print("arr------------------------------------------")
+            print(arr)
+            if arr == None:
+                arr = list()
+            arr.append(str(idTask - 1))
+            sqlCommand = f"UPDATE `group` SET IDTasks = {f'JSON_ARRAY({arr})'.replace('[','').replace(']','')} WHERE ID={idPeople};"
+            cursor.execute(sqlCommand)
+            connect.commit()
+
+
+
+
+
+
+
 async def send(call: CallbackQuery, state: FSMContext, bot : Bot):
+
     data = await state.get_data()
-    print(f"-----------------------{state}--------------------")
-    print(data.get("nameOfTheSpecialist"))
-    if data.get("namePjoject") != None:
+
+    # data = await state.get_data()
+    # print(f"-----------------------{state}--------------------")
+    print(data.get("designated_People"))
+    if data.get("name_Tasks") != None:
         # print("Finish--->")
         # print(data.get("download_zip"))
-        name = settings.bots.path_save + data.get("namePjoject")
-        os.mkdir(name)
-        # fileTEXT = open(f"{name}/{data.get('namePjoject')}.txt", 'w+')
+        name = settings.bots.path_save + data.get("name_Tasks")
+        # fileTEXT = open(f"{name}/{data.get('name_Tasks')}.txt", 'w+')
         if data.get("download_zip") != None:
+            os.mkdir(name)
             file_id = data.get('download_zip')
             print(f"-----------------------{file_id}----------------------")
             file = await bot.get_file(file_id)
             file_path = file.file_path
             print(f"{name}text.{file_path[file_path.rfind('.'):]}")
             await bot.download_file(file_path, f"{name}/text.{file_path[file_path.rfind('.') + 1:]}")
+            with az.Archive() as archive:
+                # Добавить папку в zip
+                archive.create_entries(name)
+                archive.save(f"{name}.zip")
+            DelDir(name)
         # # print(f"-----------------------{file_path}----------------------")
-        # # await bot.download_file(data.get('namePjoject'), "text.txt")
+        # # await bot.download_file(data.get('name_Tasks'), "text.txt")
         # for key, item in data.items():
         #     print(key, item)
         #     if item != None and key != 'download_zip':
@@ -141,13 +204,10 @@ async def send(call: CallbackQuery, state: FSMContext, bot : Bot):
         #         except Exception:
         #             print("ERROR")
         #             # print(Exception)
-        CreateNewExeleFile(data,name)
+        # CreateNewExeleFile(data,name)
         # fileTEXT.close()
-        with az.Archive() as archive:
-            # Добавить папку в zip
-            archive.create_entries(name)
-            archive.save(f"{name}.zip")
-        DelDir(name)
+        WriteInSQL(data)
+
     else:
         await call.message.answer(text="Error:Неуказанно имя!!!")
 async def exit(call: CallbackQuery, state: FSMContext):
@@ -164,16 +224,16 @@ async def exitMainKey(call: CallbackQuery, state: FSMContext):
 async def name_of_the_specialistPoint2(call: CallbackQuery, state: FSMContext,bot:Bot):
     data = await state.get_data()
     temporaryArray = list()
-    if data.get("nameOfTheSpecialist") != None:
-        temporaryArray = data.get("nameOfTheSpecialist")
+    if data.get("designated_People") != None:
+        temporaryArray = data.get("designated_People")
     if call.data in temporaryArray:
         temporaryArray.remove(call.data)
     else:
         temporaryArray.append(call.data)
 
     print(temporaryArray)
-    await state.update_data(nameOfTheSpecialist=temporaryArray)
-    print("State UPDETE nameOfTheSpecialist")
+    await state.update_data(designated_People=temporaryArray)
+    print("State UPDETE designated_People")
 
     await call.message.edit_reply_markup(
         reply_markup=await generatorWorkerKeyBoard(state)

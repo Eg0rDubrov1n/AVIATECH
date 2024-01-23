@@ -10,18 +10,18 @@ from core.unit.SignalState import Form
 
 async def FORMPRINT(state: FSMContext):
     data = await state.get_data()
-    name = data.get("namePjoject")
+    name = data.get("name_Tasks")
     print(f"-----------------{Form.__states__}---------------")
-    print(f"-----------------{Form.namePjoject}---------------")
+    print(f"-----------------{Form.name_Tasks}---------------")
     print(f"-----------------{state}---------------")
     print(f"-----------------{name}---------------")
 
 async def generatorMainKeyBoard(state: FSMContext):
     data = await state.get_data()
-    # state:FSMContext = Form.namePjoject
+    # state:FSMContext = Form.name_Tasks
     MainKeyBoard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text=f'Название проекта {["🔴","🟢"][data.get("namePjoject") != None]}', url=None, callback_data='name_pjoject')],
-                         [InlineKeyboardButton(text=f'Назначте специалиста {["🔴","🟢"][data.get("nameOfTheSpecialist") != None]}', url=None, callback_data='name_of_the_specialist')],
+        inline_keyboard=[[InlineKeyboardButton(text=f'Название проекта {["🔴","🟢"][data.get("name_Tasks") != None]}', url=None, callback_data='name_pjoject')],
+                         [InlineKeyboardButton(text=f'Назначте специалиста {["🔴","🟢"][data.get("designated_People") != None]}', url=None, callback_data='name_of_the_specialist')],
                          [InlineKeyboardButton(text=f'Описание {["🔴","🟢"][data.get("Description") != None]}', url=None, callback_data='description')],
                          [InlineKeyboardButton(text=f'Загрузить ZIP файл {["🔴","🟢"][data.get("download_zip") != None]}', url=None, callback_data='download_zip')],
                          [InlineKeyboardButton(text='Send', url=None, callback_data='send'), InlineKeyboardButton(text='Exit', url=None, callback_data='exit')]])
@@ -57,11 +57,11 @@ async def generatorWorkerKeyBoard(state: FSMContext):
         cursor.execute(sqlCommand)
         for nameProject in cursor.fetchall():
             print(nameProject.get("Name"), nameProject.get("ID"))
-            if data.get("nameOfTheSpecialist") != None:
-                print("affasm--->",str(nameProject.get("ID")) in data.get("nameOfTheSpecialist"))
-                print("affasm--->",nameProject.get("ID") , data.get("nameOfTheSpecialist"))
+            if data.get("designated_People") != None:
+                print("affasm--->",str(nameProject.get("ID")) in data.get("designated_People"))
+                print("affasm--->",nameProject.get("ID") , data.get("designated_People"))
 
-            TasksKeyboardIn.button(text=f'Name:{nameProject.get("Name")}{["🔴","🟢"][data.get("nameOfTheSpecialist") != None and str(nameProject.get("ID")) in data.get("nameOfTheSpecialist")]}', callback_data=str(nameProject.get("ID")))
+            TasksKeyboardIn.button(text=f'Name:{nameProject.get("Name")}{["🔴","🟢"][data.get("designated_People") != None and str(nameProject.get("ID")) in data.get("designated_People")]}', callback_data=str(nameProject.get("ID")))
 
 
         TasksKeyboardIn.button(text="exit", callback_data="exitMainKey")

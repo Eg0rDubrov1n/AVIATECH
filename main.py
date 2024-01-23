@@ -91,13 +91,13 @@ async def start():
     dp.message.register(process_new_the_specialist_name, Specialist.specialistName)
     dp.message.register(process_new_the_specialist_tag, Specialist.specialisttag)
 
-    dp.message.register(process_name, Form.namePjoject)
+    dp.message.register(process_name, Form.name_Tasks)
     dp.message.register(process_Description, Form.Description)
     dp.message.register(download_zipAction, Form.download_zip,F.document)
 
     dp.callback_query.register(ActionWithProject,ArchiveState.NameProject)
 
-    dp.callback_query.register(name_of_the_specialistPoint2, Form.nameOfTheSpecialist)
+    dp.callback_query.register(name_of_the_specialistPoint2, Form.designated_People)
 
 
     try:

@@ -12,7 +12,7 @@ PATH = "C:/Users/User/PycharmProjects/botIheteOtchet/FILE/"
 async def process_name(message: Message, state: FSMContext, bot: Bot) -> None:
         existsFile = await os.path.exists(f"{PATH}{message.text}")
         print(existsFile)
-        await state.update_data(namePjoject=message.text)
+        await state.update_data(name_Tasks=message.text)
 
         await bot.delete_message(message.chat.id, message_id=message.message_id)
         if existsFile:
@@ -29,7 +29,7 @@ async def process_name(message: Message, state: FSMContext, bot: Bot) -> None:
 
 async def process_nameError(call: CallbackQuery, state: FSMContext, bot: Bot) -> None:
     if (call == None or "NO_" in call.data):
-        await state.update_data(namePjoject=None)
+        await state.update_data(name_Tasks=None)
 
     await bot.edit_message_text(text="ОБНОВА", reply_markup=await generatorMainKeyBoard(state),
                                 chat_id=FormMesegeInlineKeyboard.ChatID,
@@ -62,4 +62,4 @@ async def download_zipAction(message: Message, bot : Bot, state: FSMContext):
     # destination = r'C:\\Users\\User\\PycharmProjects\\Новая_папка'
     # destination_file = bot.download_file(file_path, destination)
 
-# @dp.message(Form.nameOfTheSpecialist)
+# @dp.message(Form.designated_People)

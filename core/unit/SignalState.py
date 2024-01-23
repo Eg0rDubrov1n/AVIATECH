@@ -2,8 +2,8 @@ from aiogram.fsm.state import StatesGroup, State
 
 
 class Form(StatesGroup):
-    namePjoject = State()
-    nameOfTheSpecialist = State()
+    name_Tasks = State()
+    designated_People = State()
     Description = State()
     download_zip = State()
 

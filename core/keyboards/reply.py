@@ -2,7 +2,6 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 KeyGlobal = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Дать Задачу"),KeyboardButton(text="Архив")],
         [KeyboardButton(text="Архив"), KeyboardButton(text="Новый проект"), KeyboardButton(text="Настройки")]
     ]
 )
