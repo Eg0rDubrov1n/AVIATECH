@@ -1,3 +1,4 @@
+import pymysql
 from environs import  Env
 from dataclasses import dataclass
 @dataclass
@@ -36,5 +37,15 @@ def get_settings(path: str):
             db_name = env.str("DB_NAME")
         )
     )
+def Connect():
+    connect = pymysql.connect(
+        host=settings.server.host,
+        port=int(settings.server.port),
+        user=settings.server.user,
+        password=settings.server.password,
+        database=settings.server.db_name,
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    return connect
 settings = get_settings('input')
 print(settings)

@@ -10,7 +10,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
 from core.keyboards.reply import KeyGlobal
-from core.setings import settings
+from core.setings import settings, Connect
 from core.unit.SignalState import Form, Specialist, FormMesegeInlineKeyboard
 
 import aspose.zip as az
@@ -119,14 +119,7 @@ def CreateNewExeleFile(data,name):
     wb.save(f"{name}/test.xlsx")
 
 def WriteInSQL(data):
-    connect = pymysql.connect(
-        host="127.0.0.1",
-        port=3306,
-        user="root",
-        password="root",
-        database="test12",
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    connect = Connect()
     isstr_queryKey = list()
     isstr_queryValues = list()
     for key, item in data.items():
@@ -135,7 +128,8 @@ def WriteInSQL(data):
             if key == "designated_People":
                 isstr_queryValues.append(f"JSON_ARRAY({item})".replace('[','').replace(']',''))
             else:
-                isstr_queryValues.append(f"'{item}'")
+                # isstr_queryValues.append(f'\'{item.replace("\'","\\\'").replace("\"","\\\"")}\'')
+                isstr_queryValues.append(f'\'{item}\'')
     isstr_queryKey = ','.join(isstr_queryKey).replace('\'', '`')
     isstr_queryValues = ','.join(isstr_queryValues)
     with connect.cursor() as cursor:
@@ -153,12 +147,13 @@ def WriteInSQL(data):
             sqlCommand = f"SELECT  IDTasks FROM `group` WHERE ID={idPeople}"
             print(f"sqlCommand------------------------------------------{sqlCommand}")
             cursor.execute(sqlCommand)
-            arr = cursor.fetchall()[0]['IDTasks']
-            print("arr------------------------------------------")
-            print(arr)
-            if arr == None:
-                arr = list()
+
+            arr = list()
+            arrTasks = cursor.fetchall()[0]['IDTasks']
+            if arrTasks != None:
+                arr.append(arrTasks)
             arr.append(str(idTask - 1))
+
             sqlCommand = f"UPDATE `group` SET IDTasks = {f'JSON_ARRAY({arr})'.replace('[','').replace(']','')} WHERE ID={idPeople};"
             cursor.execute(sqlCommand)
             connect.commit()
@@ -207,7 +202,7 @@ async def send(call: CallbackQuery, state: FSMContext, bot : Bot):
         # CreateNewExeleFile(data,name)
         # fileTEXT.close()
         WriteInSQL(data)
-
+        await state.clear()
     else:
         await call.message.answer(text="Error:Неуказанно имя!!!")
 async def exit(call: CallbackQuery, state: FSMContext):

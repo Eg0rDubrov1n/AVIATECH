@@ -7,10 +7,14 @@ class Form(StatesGroup):
     Description = State()
     download_zip = State()
 
-class Specialist(StatesGroup):
-    specialistName = State()
-    specialisttag = State()
+class SpeciaParametrsWite(StatesGroup):
+    Name = State()
+    Password = State()
 
+
+class Specialist(StatesGroup):
+    ID = State()
+    chaeckSpecialistPassword = State()
 # class FileSend(StatesGroup):
 #     fileSend = State()
 

@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import json
-from core.setings import settings
+from core.setings import settings, Connect
 from core.unit.SignalState import Form
 
 async def FORMPRINT(state: FSMContext):
@@ -20,8 +20,8 @@ async def generatorMainKeyBoard(state: FSMContext):
     data = await state.get_data()
     # state:FSMContext = Form.name_Tasks
     MainKeyBoard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text=f'Название проекта {["🔴","🟢"][data.get("name_Tasks") != None]}', url=None, callback_data='name_pjoject')],
-                         [InlineKeyboardButton(text=f'Назначте специалиста {["🔴","🟢"][data.get("designated_People") != None]}', url=None, callback_data='name_of_the_specialist')],
+        inline_keyboard=[[InlineKeyboardButton(text=f'Название проекта {["🔴","🟢"][data.get("name_Tasks") != None]}', url=None, callback_data='name_tasks')],
+                         [InlineKeyboardButton(text=f'Назначте специалиста {["🔴","🟢"][data.get("designated_People") != None]}', url=None, callback_data='designated_people')],
                          [InlineKeyboardButton(text=f'Описание {["🔴","🟢"][data.get("Description") != None]}', url=None, callback_data='description')],
                          [InlineKeyboardButton(text=f'Загрузить ZIP файл {["🔴","🟢"][data.get("download_zip") != None]}', url=None, callback_data='download_zip')],
                          [InlineKeyboardButton(text='Send', url=None, callback_data='send'), InlineKeyboardButton(text='Exit', url=None, callback_data='exit')]])
@@ -35,39 +35,37 @@ async def generatorMainKeyBoard(state: FSMContext):
 #                          [InlineKeyboardButton(text='All', url=None, callback_data='all'), InlineKeyboardButton(text='Exit', url=None, callback_data='exit_worker')]])
 #     return MainKeyBoard
 
-async def generatorWorkerKeyBoard(state: FSMContext):
-    connect = pymysql.connect(
-        host="127.0.0.1",
-        port=3306,
-        user="root",
-        password="root",
-        database="test12",
-        cursorclass=pymysql.cursors.DictCursor
-        # host=settings.server.host,
-        # port=settings.server.port,
-        # user=settings.server.user,
-        # password=settings.server.password,
-        # database=settings.server.db_name,
-        # cursorclass=pymysql.cursors.DictCursor
-    )
-    data = await state.get_data()
+
+def List_of_Employees():
+    connect = Connect()
     with connect.cursor() as cursor:
-        TasksKeyboardIn = InlineKeyboardBuilder()
         sqlCommand = "SELECT  ID, Name FROM `group`"
         cursor.execute(sqlCommand)
-        for nameProject in cursor.fetchall():
-            print(nameProject.get("Name"), nameProject.get("ID"))
-            if data.get("designated_People") != None:
-                print("affasm--->",str(nameProject.get("ID")) in data.get("designated_People"))
-                print("affasm--->",nameProject.get("ID") , data.get("designated_People"))
+        return cursor.fetchall()
+async def generatorWorkerKeyBoard(state: FSMContext):
+    data = await state.get_data()
+    TasksKeyboardIn = InlineKeyboardBuilder()
+    for nameProject in List_of_Employees():
+        print(nameProject.get("Name"), nameProject.get("ID"))
+        TasksKeyboardIn.button(text=f'Name:{nameProject.get("Name")}{["🔴","🟢"][(data.get("designated_People") != None and str(nameProject.get("ID")) in data.get("designated_People"))]}', callback_data=str(nameProject.get("ID")))
 
-            TasksKeyboardIn.button(text=f'Name:{nameProject.get("Name")}{["🔴","🟢"][data.get("designated_People") != None and str(nameProject.get("ID")) in data.get("designated_People")]}', callback_data=str(nameProject.get("ID")))
+    TasksKeyboardIn.button(text="exit", callback_data="exitMainKey")
+    TasksKeyboardIn.adjust(1)
+    return TasksKeyboardIn.as_markup()
 
 
-        TasksKeyboardIn.button(text="exit", callback_data="exitMainKey")
-        TasksKeyboardIn.adjust(1)
-        return TasksKeyboardIn.as_markup()
+async def EmployeeSelection():
+    TasksKeyboardIn = InlineKeyboardBuilder()
+    for nameProject in List_of_Employees():
+        print(nameProject.get("Name"), nameProject.get("ID"))
+        TasksKeyboardIn.button(
+            text=f'Name:{nameProject.get("Name")}',
+            callback_data=str(nameProject.get("ID")))
 
+    TasksKeyboardIn.button(text="Нет в спске ", callback_data="none_In_List")
+    # TasksKeyboardIn.adjust(2)
+    TasksKeyboardIn.adjust(1)
+    return TasksKeyboardIn.as_markup()
 
 async def generatorArchiveKeyBoard():
     archiveKeyBoard = InlineKeyboardBuilder()
@@ -92,3 +90,12 @@ async def simpleQuestion(nameDef):
                          [InlineKeyboardButton(text='YES', url=None, callback_data=f'YES{nameDef}'),
                           InlineKeyboardButton(text='NO', url=None, callback_data=f'NO_{nameDef}')]])
     return simpleQuestionKeyBoard
+
+
+async def Calender():
+    archiveKeyBoard = InlineKeyboardBuilder()
+    print(settings.bots.path_save)
+    for nameProject in os.listdir(settings.bots.path_save):
+        archiveKeyBoard.button(text=nameProject, callback_data=nameProject)
+    archiveKeyBoard.adjust(1)
+    return archiveKeyBoard.as_markup()
